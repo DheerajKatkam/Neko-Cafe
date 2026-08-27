@@ -1,0 +1,413 @@
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------
+   Base theme — fonts, animation tokens, static keyframes.
+   ---------------------------------------------------------------- */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-mono: var(--font-space-mono), ui-monospace, monospace;
+
+  --animate-marquee: marquee 26s linear infinite;
+  --animate-marquee-slow: marquee 44s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-14px);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------
+   Palette — runtime CSS variables so dark mode (html[data-theme])
+   and the scroll-linked "mood" tint can swap colors without JS.
+   Utilities are emitted via `@theme inline`, so `bg-cream` etc.
+   resolve to these variables at runtime.
+   ---------------------------------------------------------------- */
+:root {
+  --t-surface: #edeae3;
+  --t-surface-soft: #f5f2ec;
+  --t-text: #1f2420;
+  --t-text-soft: #3a413c;
+  --t-line: #a79b87;
+  --t-line-light: #c9c0ae;
+  --t-moss: #4b5d46;
+  --t-moss-light: #6b7d65;
+  --t-ochre: #c17a3e;
+  --t-ochre-dark: #a5632c;
+  --mood: #ffffff;
+
+  --background: var(--t-surface);
+  --foreground: var(--t-text);
+}
+
+html[data-theme="dark"] {
+  --t-surface: #161a17;
+  --t-surface-soft: #1d221e;
+  --t-text: #e9e4d8;
+  --t-text-soft: #b6ae9e;
+  --t-line: #6f675a;
+  --t-line-light: #58534a;
+  --mood: #ffffff;
+}
+
+/* Memories collage — the pastel scrapbook paper is bright, so in dark
+   mode it's dimmed to sit on the dark surface instead of clashing. */
+.memories-bg {
+  transition: filter 0.4s ease, opacity 0.4s ease;
+}
+
+html[data-theme="dark"] .memories-bg {
+  filter: brightness(0.72) saturate(0.85);
+  opacity: 0.92;
+}
+
+/* Always-dark surfaces (Happenings, marquee, mobile menu, moss forms)
+   keep their light-mode palette even in dark mode so they stay
+   high-contrast instead of inverting. */
+html[data-theme="dark"] .surface-inverse {
+  --t-surface: #edeae3;
+  --t-surface-soft: #f5f2ec;
+  --t-text: #1f2420;
+  --t-text-soft: #3a413c;
+  --t-line: #a79b87;
+  --t-line-light: #c9c0ae;
+  --mood: #ffffff;
+}
+
+@theme inline {
+  --color-cream: color-mix(in srgb, var(--mood) 6%, var(--t-surface));
+  --color-cream-soft: color-mix(in srgb, var(--mood) 3%, var(--t-surface-soft));
+  --color-ink: var(--t-text);
+  --color-ink-soft: var(--t-text-soft);
+  --color-moss: var(--t-moss);
+  --color-moss-light: var(--t-moss-light);
+  --color-ochre: var(--t-ochre);
+  --color-ochre-dark: var(--t-ochre-dark);
+  --color-taupe: var(--t-line);
+  --color-taupe-light: var(--t-line-light);
+  --color-background: var(--t-surface);
+  --color-foreground: var(--t-text);
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+::selection {
+  background: var(--t-ochre);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--t-ochre);
+  outline-offset: 3px;
+}
+
+/* Theme toggle icons — swap via CSS on data-theme so the button
+   never re-renders (no hydration mismatch, no effect state). */
+.theme-icon-sun {
+  display: block;
+}
+
+.theme-icon-moon {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-icon-sun {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-icon-moon {
+  display: block;
+}
+
+/* ----------------------------------------------------------------
+   Fluid typography — clamp() so headings scale smoothly instead of
+   jumping at breakpoints.
+   ---------------------------------------------------------------- */
+.type-fluid-display {
+  font-size: clamp(3rem, 8.5vw, 7.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+
+.type-fluid-h2 {
+  font-size: clamp(2.1rem, 5vw, 3.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.type-fluid-h3 {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+/* Content-visibility for below-the-fold sections — reserve space
+   so the browser can skip rendering them until scrolled near. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 700px;
+}
+
+/* Marquee track — duplicated content scrolls seamlessly */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.marquee-paused:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* ----------------------------------------------------------------
+   Steam rising from cups (SteamEffect) — transform/opacity only.
+   ---------------------------------------------------------------- */
+.steam-wisp {
+  position: absolute;
+  animation: steam-rise var(--steam-dur, 3.4s) ease-in-out infinite;
+  animation-delay: var(--steam-delay, 0s);
+}
+
+@keyframes steam-rise {
+  0% {
+    transform: translateY(6px) translateX(0) scaleY(0.9) scaleX(0.9);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.7;
+  }
+  60% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(-38px) translateX(5px) scaleY(1.35) scaleX(1.1);
+    opacity: 0;
+  }
+}
+
+/* Sunbeams + drifting dust motes (SunbeamDrift) */
+.sunbeam {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--t-ochre) 14%, transparent),
+    color-mix(in srgb, var(--t-ochre) 3%, transparent)
+  );
+}
+
+.dust-mote {
+  position: absolute;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--t-ochre) 40%, transparent);
+  animation: dust-drift var(--dust-dur, 12s) ease-in-out infinite;
+  animation-delay: var(--dust-delay, 0s);
+}
+
+@keyframes dust-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--dust-opacity, 0.5);
+  }
+  80% {
+    opacity: var(--dust-opacity, 0.5);
+  }
+  100% {
+    transform: translate3d(var(--dust-dx, 70px), var(--dust-dy, -160px), 0);
+    opacity: 0;
+  }
+}
+
+/* Sleeping cat breathing */
+.breathing {
+  animation: breathe 4.5s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+/* Image skeleton shimmer */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--t-text) 8%, transparent) 25%,
+    color-mix(in srgb, var(--t-text) 18%, transparent) 50%,
+    color-mix(in srgb, var(--t-text) 8%, transparent) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------------------------------------------------------------
+   CatBackground — walking cat silhouette (PNG asset).
+   Motion is applied via Framer Motion transforms on the component
+   (traverse + bob + squash/stretch + direction flip). These styles
+   handle color adaptation, sparkle twinkle, and off-screen pausing.
+   --------------------------------------------------------------- */
+.cat-art {
+  filter: invert(0);
+}
+
+html[data-theme="dark"] .cat-art {
+  filter: invert(1);
+}
+
+.cat-track {
+  transform: translateZ(0);
+}
+
+.cat-sparkle {
+  color: #1f2420;
+  transform-origin: center;
+  animation: cat-sparkle-twinkle 2.6s ease-in-out infinite;
+}
+
+.cat-sparkle:nth-child(even) {
+  animation-delay: -1.3s;
+}
+
+.cat-paused .cat-sparkle {
+  animation-play-state: paused;
+}
+
+@keyframes cat-sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0.12;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+}
+
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+  }
+
+  .animate-marquee,
+  .animate-marquee-slow,
+  .animate-float,
+  .steam-wisp,
+  .dust-mote,
+  .breathing {
+    animation: none !important;
+  }
+
+  .skeleton {
+    animation: none !important;
+  }
+
+  .sr-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .h1-word {
+    transform: none !important;
+  }
+
+  .parallax {
+    transform: none !important;
+  }
+
+  .mood-wrap {
+    --mood: #ffffff !important;
+  }
+
+  .polaroid {
+    opacity: 1 !important;
+  }
+
+  .polaroid-l {
+    transform: rotate(-8deg) !important;
+  }
+
+  .polaroid-r {
+    transform: rotate(7deg) !important;
+  }
+
+  .clip-reveal {
+    clip-path: none !important;
+  }
+
+  .cat-sparkle {
+    animation: none !important;
+    display: none;
+  }
+
+  html,
+  body {
+    scroll-behavior: auto !important;
+  }
+}
